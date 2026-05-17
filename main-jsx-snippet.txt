@@ -1,5 +1,0 @@
-// أضف هذا الاستيراد أعلى main.jsx
-import AutoBannerSlider from "./components/AutoBannerSlider";
-
-// ثم أضف هذا السطر قبل قسم خدمات أمد باي الأساسية
-<AutoBannerSlider />
