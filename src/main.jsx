@@ -163,32 +163,77 @@ function InstagramReelSection() {
 }
 
 function PromoSlider() {
+  const [current, setCurrent] = React.useState(0);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % sliderBanners.length);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const nextSlide = () => {
+    setCurrent((prev) => (prev + 1) % sliderBanners.length);
+  };
+
+  const prevSlide = () => {
+    setCurrent((prev) => (prev - 1 + sliderBanners.length) % sliderBanners.length);
+  };
+
   return (
-    <section className="w-full px-4 py-10">
-      <div className="mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-white shadow-2xl shadow-blue-900/10 ring-1 ring-slate-200">
-        <motion.div
-          className="flex w-[500%]"
-          animate={{
-            x: ["0%", "-100%", "-200%", "-300%", "-400%"],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        >
+    <section className="mx-auto max-w-7xl px-5 py-10 md:px-8">
+
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-white shadow-2xl shadow-blue-900/10 ring-1 ring-slate-200">
+
+        <div className="relative aspect-[1920/650] w-full">
+
           {sliderBanners.map((banner, index) => (
-            <div key={index} className="w-full flex-shrink-0">
-              <img
-                src={banner}
-                alt={`AMD PAY Banner ${index + 1}`}
-                className="h-auto w-full object-cover"
-              />
-            </div>
+            <img
+              key={index}
+              src={banner}
+              alt={`Banner ${index + 1}`}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
+                current === index ? "opacity-100" : "opacity-0"
+              }`}
+            />
           ))}
-        </motion.div>
+
+        </div>
+
+        <button
+          onClick={prevSlide}
+          className="absolute right-5 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-2xl font-black text-[#234b87] shadow-xl backdrop-blur"
+        >
+          ›
+        </button>
+
+        <button
+          onClick={nextSlide}
+          className="absolute left-5 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-2xl font-black text-[#234b87] shadow-xl backdrop-blur"
+        >
+          ‹
+        </button>
+
+        <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+          {sliderBanners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrent(index)}
+              className={`h-2.5 rounded-full transition-all duration-300 ${
+                current === index
+                  ? "w-8 bg-[#ff861c]"
+                  : "w-2.5 bg-white/80"
+              }`}
+            />
+          ))}
+        </div>
+
       </div>
+
     </section>
+  );
+}
   );
 }
 
