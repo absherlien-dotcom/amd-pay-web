@@ -9,16 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "latest",
     "@vitejs/plugin-react": "latest",
+    "autoprefixer": "latest",
     "vite": "latest",
     "react": "latest",
     "react-dom": "latest",
     "framer-motion": "latest",
-    "lucide-react": "latest"
+    "lucide-react": "latest",
+    "tailwindcss": "latest"
   },
-  "devDependencies": {
-    "tailwindcss": "latest",
-    "postcss": "latest",
-    "autoprefixer": "latest"
-  }
+  "devDependencies": {}
 }
