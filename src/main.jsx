@@ -16,6 +16,7 @@ import {
   BadgeCheck,
   Layers3,
   Search,
+  PlayCircle,
 } from "lucide-react";
 import { BRAND } from "./siteConfig";
 import "./index.css";
@@ -103,6 +104,56 @@ function ScreenshotCard({ item, index }) {
   );
 }
 
+function InstagramReelSection() {
+  const reelUrl = BRAND.links.instagramReel || BRAND.links.instagram;
+  const reelId = reelUrl?.match(/reel\/([^/?]+)/)?.[1];
+  const embedUrl = reelId ? `https://www.instagram.com/reel/${reelId}/embed` : null;
+
+  if (!embedUrl) return null;
+
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
+      <div className="grid items-center gap-10 rounded-[2.5rem] bg-white p-6 shadow-2xl shadow-blue-900/10 ring-1 ring-slate-200 md:grid-cols-[1fr_.9fr] md:p-10">
+        <div>
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#ff861c]/10 px-4 py-2 text-sm font-black text-[#ff861c]">
+            <PlayCircle className="h-5 w-5" />
+            عرض مباشر من إنستقرام
+          </div>
+
+          <h2 className="text-4xl font-black leading-tight text-[#234b87] md:text-5xl">
+            شاهد لمحة من أمد باي داخل الموقع
+          </h2>
+
+          <p className="mt-5 max-w-xl font-semibold leading-9 text-slate-600">
+            هذا القسم يعرض فيديو مباشر من حساب أمد باي، ويمكن لاحقاً استبداله بفيديو يوتيوب أو عرض أكثر من فيديو بدون تغيير تصميم الصفحة.
+          </p>
+
+          <a
+            href={reelUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-7 inline-flex items-center justify-center gap-3 rounded-2xl bg-[#234b87] px-6 py-4 font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-1 hover:shadow-xl"
+          >
+            فتح الفيديو في إنستقرام
+          </a>
+        </div>
+
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-[#f4f6fb] shadow-xl shadow-blue-900/10">
+          <iframe
+            src={embedUrl}
+            title="Amd Pay Instagram Reel"
+            className="h-[620px] w-full bg-white"
+            frameBorder="0"
+            scrolling="no"
+            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function App() {
   return (
     <main dir="rtl" className="min-h-screen overflow-hidden bg-[#f4f6fb] text-slate-900">
@@ -142,6 +193,8 @@ function App() {
           <PhoneShowcase />
         </div>
       </section>
+
+      <InstagramReelSection />
 
       <section id="features" className="relative mx-auto max-w-7xl px-5 py-20 md:px-8">
         <div className="mb-10 text-center">
