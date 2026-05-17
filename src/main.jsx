@@ -36,7 +36,13 @@ const trustPoints = [
   "تصميم متجاوب للجوال والحاسوب",
   "مناسب لحملات Meta Ads",
 ];
-
+const sliderBanners = [
+  "/assets/images/slider/banner-01.webp",
+  "/assets/images/slider/banner-02.webp",
+  "/assets/images/slider/banner-03.webp",
+  "/assets/images/slider/banner-04.webp",
+  "/assets/images/slider/banner-05.webp",
+];
 const appSections = ["كبينة السداد", "شحن التطبيقات", "البطاقات", "شحن الألعاب", "الشبكات", "سدد لي", "المسابقات", "الشرائح"];
 
 const faqs = [
