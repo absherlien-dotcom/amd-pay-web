@@ -14,6 +14,8 @@ export const BRAND = {
     whatsapp: "https://wa.me/message/4VDWJTGFXKCGD1",
     facebook: "https://www.facebook.com/share/17p32vFfDK/",
     instagram: "https://www.instagram.com/amdpayy?igsh=MTAzcW4wOGRlZTNtMw==",
+      instagramReel: "https://www.instagram.com/reel/DRQMlTdjRZX/?igsh=MXY0c3ZxMjI1em9vOQ==",
+
   },
   phones: ["00967712080901", "00967711117749", "00967777090975"],
   assets: {
