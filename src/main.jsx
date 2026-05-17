@@ -36,6 +36,7 @@ const trustPoints = [
   "تصميم متجاوب للجوال والحاسوب",
   "مناسب لحملات Meta Ads",
 ];
+
 const sliderBanners = [
   "/assets/images/slider/banner-01.webp",
   "/assets/images/slider/banner-02.webp",
@@ -43,6 +44,7 @@ const sliderBanners = [
   "/assets/images/slider/banner-04.webp",
   "/assets/images/slider/banner-05.webp",
 ];
+
 const appSections = ["كبينة السداد", "شحن التطبيقات", "البطاقات", "شحن الألعاب", "الشبكات", "سدد لي", "المسابقات", "الشرائح"];
 
 const faqs = [
@@ -160,6 +162,36 @@ function InstagramReelSection() {
   );
 }
 
+function PromoSlider() {
+  return (
+    <section className="w-full px-4 py-10">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-white shadow-2xl shadow-blue-900/10 ring-1 ring-slate-200">
+        <motion.div
+          className="flex w-[500%]"
+          animate={{
+            x: ["0%", "-100%", "-200%", "-300%", "-400%"],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        >
+          {sliderBanners.map((banner, index) => (
+            <div key={index} className="w-full flex-shrink-0">
+              <img
+                src={banner}
+                alt={`AMD PAY Banner ${index + 1}`}
+                className="h-auto w-full object-cover"
+              />
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 function App() {
   return (
     <main dir="rtl" className="min-h-screen overflow-hidden bg-[#f4f6fb] text-slate-900">
@@ -201,6 +233,8 @@ function App() {
       </section>
 
       <InstagramReelSection />
+
+      <PromoSlider />
 
       <section id="features" className="relative mx-auto max-w-7xl px-5 py-20 md:px-8">
         <div className="mb-10 text-center">
