@@ -29,12 +29,12 @@ const services = [
 ];
 
 const trustPoints = [
-  "واجهة سهلة وحديثة بنفس هوية أمد باي",
-  "خدمات متنوعة للشباب وأصحاب المحلات",
-  "انتقال مباشر من الإعلان إلى صفحة التحميل",
-  "أزرار واضحة للتواصل والدعم",
-  "تصميم متجاوب للجوال والحاسوب",
-  "مناسب لحملات Meta Ads",
+  "خدمات رقمية متنوعة في مكان واحد",
+  "تغذية الحساب عبر المحافظ والحوالات",
+  "شحن ألعاب وبطاقات رقمية بسهولة",
+  "تسديدات واتصالات وخدمات محلية",
+  "واجهة سهلة وسريعة الاستخدام",
+  "دعم وتواصل مباشر عند الحاجة",
 ];
 
 const sliderBanners = [
@@ -294,7 +294,7 @@ function App() {
 
       <section className="bg-[#234b87] px-5 py-20 text-white md:px-8">
         <div className="mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-2">
-          <div><p className="mb-3 font-black text-[#ffb36a]">مصمم للتحويل من إعلانات ميتا</p><h2 className="text-4xl font-black leading-tight md:text-5xl">صفحة واضحة تجعل العميل يضغط تحميل بدون تردد</h2><p className="mt-5 max-w-xl font-semibold leading-9 text-blue-100">الصفحة تعرض الشعار، الهوية، مزايا التطبيق، الواجهات الحقيقية، وروابط التواصل والتحميل بشكل مباشر وسريع.</p></div>
+          <div><p className="mb-3 font-black text-[#ffb36a]">تجربة رقمية أسهل</p><h2 className="text-4xl font-black leading-tight md:text-5xl">كل خدماتك الرقمية داخل تطبيق واحد</h2><p className="mt-5 max-w-xl font-semibold leading-9 text-blue-100">مع أمد باي يمكنك شحن الألعاب، شراء البطاقات، تغذية الحساب، وتسديد الخدمات المحلية بسهولة من مكان واحد..</p></div>
           <div className="grid gap-4 sm:grid-cols-2">{trustPoints.map((point) => <div key={point} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur"><CheckCircle2 className="h-5 w-5 shrink-0 text-[#ffb36a]" /><span className="font-bold leading-7">{point}</span></div>)}</div>
         </div>
       </section>
