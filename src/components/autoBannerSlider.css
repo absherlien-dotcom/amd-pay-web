@@ -1,0 +1,95 @@
+/* AMD Pay Auto Banner Slider */
+.amd-slider-section {
+  width: 100%;
+  padding: 26px 20px 58px;
+  background: #f4f6fb;
+}
+
+.amd-slider-shell {
+  position: relative;
+  width: min(1280px, 100%);
+  margin: 0 auto;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 26px 70px rgba(35, 75, 135, 0.16);
+  background: #ffffff;
+  border: 1px solid rgba(35, 75, 135, 0.08);
+}
+
+.amd-slider-track {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1920 / 650;
+  min-height: 260px;
+}
+
+.amd-slider-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 900ms ease, transform 1400ms ease;
+}
+
+.amd-slider-slide.active {
+  opacity: 1;
+  transform: scale(1);
+  z-index: 2;
+}
+
+.amd-slider-slide img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.amd-slider-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 5;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.66);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 25px rgba(35, 75, 135, 0.12);
+}
+
+.amd-slider-dots button {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  padding: 0;
+  border-radius: 999px;
+  background: rgba(35, 75, 135, 0.35);
+  cursor: pointer;
+  transition: all 300ms ease;
+}
+
+.amd-slider-dots button.active {
+  width: 28px;
+  background: #ff861c;
+}
+
+@media (max-width: 640px) {
+  .amd-slider-section {
+    padding: 18px 14px 42px;
+  }
+
+  .amd-slider-shell {
+    border-radius: 24px;
+  }
+
+  .amd-slider-track {
+    aspect-ratio: 1080 / 1350;
+    min-height: auto;
+  }
+
+  .amd-slider-dots {
+    bottom: 14px;
+  }
+}
