@@ -234,8 +234,6 @@ function PromoSlider() {
     </section>
   );
 }
-  );
-}
 
 function App() {
   return (
