@@ -45,18 +45,16 @@ ${message}
       }
     );
 
-    const data = await response.json();
+const data = await response.json();
 
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "عذراً، تعذر الحصول على رد حالياً.";
-
-    return res.status(200).json({
-      reply,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      reply: "حدث خطأ أثناء الاتصال بالذكاء الاصطناعي.",
-    });
-  }
+if (!response.ok) {
+  return res.status(200).json({
+    reply:
+      "خطأ من Gemini: " +
+      (data?.error?.message || JSON.stringify(data)),
+  });
 }
+
+const reply =
+  data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+  "لم يصل رد من Gemini. التفاصيل: " + JSON.stringify(data);
