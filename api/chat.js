@@ -64,8 +64,7 @@ export default async function handler(req, res) {
     ];
 
     const response = await fetch(
-  `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-  {
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {
@@ -99,8 +98,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ reply });
   } catch (error) {
     return res.status(500).json({
-      reply:
-        "حدث خطأ مؤقت في الاتصال بالمساعد الذكي. حاول مرة أخرى بعد لحظات.",
+      reply: "خطأ داخلي: " + error.message,
     });
   }
 }
