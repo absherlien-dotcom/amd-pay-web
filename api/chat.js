@@ -1,23 +1,42 @@
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
-      return res.status(405).json({
-        reply: "Method not allowed",
-      });
+      return res.status(405).json({ reply: "Method not allowed" });
     }
 
     const { message, history = [] } = req.body || {};
     const apiKey = process.env.VITE_GEMINI_API_KEY;
 
     if (!apiKey) {
-      return res.status(500).json({
+      return res.status(200).json({
         reply: "مفتاح Gemini غير موجود في إعدادات Vercel.",
       });
     }
 
     if (!message || !String(message).trim()) {
-      return res.status(400).json({
-        reply: "اكتب سؤالك وسأساعدك.",
+      return res.status(200).json({ reply: "اكتب سؤالك وسأساعدك." });
+    }
+
+    const modelsResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+    );
+
+    const modelsData = await modelsResponse.json();
+
+    if (!modelsResponse.ok) {
+      return res.status(200).json({
+        reply: "خطأ في جلب موديلات Gemini: " + (modelsData?.error?.message || JSON.stringify(modelsData)),
+      });
+    }
+
+    const availableModel =
+      modelsData?.models?.find((m) =>
+        m.supportedGenerationMethods?.includes("generateContent")
+      )?.name;
+
+    if (!availableModel) {
+      return res.status(200).json({
+        reply: "لم أجد أي موديل Gemini يدعم generateContent على هذا المفتاح.",
       });
     }
 
@@ -49,27 +68,19 @@ export default async function handler(req, res) {
 `;
 
     const contents = [
-      {
-        role: "user",
-        parts: [{ text: systemPrompt }],
-      },
+      { role: "user", parts: [{ text: systemPrompt }] },
       ...history.slice(-6).map((msg) => ({
         role: msg.from === "bot" ? "model" : "user",
         parts: [{ text: msg.text || "" }],
       })),
-      {
-        role: "user",
-        parts: [{ text: String(message).trim() }],
-      },
+      { role: "user", parts: [{ text: String(message).trim() }] },
     ];
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/${availableModel}:generateContent?key=${apiKey}`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents,
           generationConfig: {
@@ -85,9 +96,7 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       return res.status(200).json({
-        reply:
-          "خطأ من Gemini: " +
-          (data?.error?.message || JSON.stringify(data)),
+        reply: "خطأ من Gemini: " + (data?.error?.message || JSON.stringify(data)),
       });
     }
 
@@ -97,7 +106,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ reply });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(200).json({
       reply: "خطأ داخلي: " + error.message,
     });
   }
