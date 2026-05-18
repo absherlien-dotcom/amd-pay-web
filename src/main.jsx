@@ -650,30 +650,94 @@ function AmdPayBot() {
     };
   }, []);
 
-  const sendMessage = (text) => {
-    const cleanText = String(text || input).trim();
-    if (!cleanText || isTyping) return;
+const sendMessage = async (text) => {
+  const cleanText = String(text || input).trim();
 
-    window.clearTimeout(followUpTimerRef.current);
-    window.clearTimeout(replyTimerRef.current);
+  if (!cleanText || isTyping) return;
 
-    const historyBeforeReply = messages;
-    const reply = getAmdBotReply(cleanText, historyBeforeReply);
-    const delay = getTypingDelay(reply.text);
+  window.clearTimeout(followUpTimerRef.current);
+  window.clearTimeout(replyTimerRef.current);
 
-    setMessages((prev) => [...prev, { from: "user", text: cleanText }]);
-    setInput("");
-    setIsTyping(true);
+  const userMessage = {
+    from: "user",
+    text: cleanText,
+  };
+
+  setMessages((prev) => [...prev, userMessage]);
+
+  setInput("");
+  setIsTyping(true);
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: cleanText,
+        history: messages,
+        catalogText:
+          typeof getCatalogText === "function"
+            ? getCatalogText(cleanText)
+            : "",
+      }),
+    });
+
+    const data = await response.json();
+
+    const botReply =
+      data.reply ||
+      "عذرًا، لم أستطع تجهيز الرد الآن.";
+
+    const typingDelay = Math.min(
+      Math.max(botReply.length * 18, 1200),
+      4500
+    );
 
     replyTimerRef.current = window.setTimeout(() => {
       setIsTyping(false);
-      setMessages((prev) => [...prev, { from: "bot", ...reply, originalQuestion: cleanText }]);
-      if (!open || document.hidden) {
-        setUnread((count) => count + 1);
-      }
-      playNotification();
-    }, delay);
-  };
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          from: "bot",
+          text: botReply,
+        },
+      ]);
+
+      try {
+        const audio = new Audio(
+          "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="
+        );
+
+        audio.play().catch(() => {});
+      } catch {}
+
+      followUpTimerRef.current = window.setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            from: "bot",
+            text:
+              "هل تحتاج توضيح أكثر؟ أقدر أساعدك خطوة بخطوة أو أحولك لخدمة العملاء.",
+          },
+        ]);
+      }, 60000);
+    }, typingDelay);
+  } catch (error) {
+    setIsTyping(false);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        from: "bot",
+        text:
+          "حدث خطأ مؤقت في الاتصال بالمساعد الذكي. حاول مرة أخرى بعد لحظات.",
+      },
+    ]);
+  }
+};};
 
   const lastUserQuestion = [...messages].reverse().find((message) => message.from === "user")?.text || "مرحباً، أحتاج مساعدة بخصوص أمد باي";
 
