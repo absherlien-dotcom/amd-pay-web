@@ -737,7 +737,7 @@ const sendMessage = async (text) => {
       },
     ]);
   }
-}
+};
 
   const lastUserQuestion = [...messages].reverse().find((message) => message.from === "user")?.text || "مرحباً، أحتاج مساعدة بخصوص أمد باي";
 
@@ -836,7 +836,6 @@ const sendMessage = async (text) => {
       )}
     </>
   );
-}
 
 function App() {
   return (
