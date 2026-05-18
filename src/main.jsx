@@ -278,32 +278,243 @@ function buildWhatsAppSupportLink(message) {
   return `${BRAND.links.whatsapp}${separator}text=${text}`;
 }
 
+const supportInfo = {
+  phones: ["712080901", "711117749", "777090975"],
+  hours: "من 8:30 صباحاً حتى 12:00 ظهراً، ثم من 2:00 بعد الظهر حتى 12:00 منتصف الليل",
+  minTopup: "2000 ريال يمني",
+};
+
+const amdPaySupportKnowledge = [
+  {
+    intent: "password_recovery",
+    title: "استعادة كلمة المرور",
+    triggers: ["استعادة كلمة المرور", "نسيت كلمة المرور", "نسيت كلمة السر", "استرجاع كلمة السر", "استرجاع كلمة المرور", "كلمة السر ضاعت", "ما اقدر ادخل", "لا استطيع الدخول", "اعادة كلمة المرور"],
+    answer: `لاستعادة كلمة المرور افتح واجهة تسجيل الدخول ثم اضغط “نسيت كلمة السر”.
+
+اختر طريقة الاستعادة: واتساب أو رسائل SMS.
+إذا اخترت واتساب، سيرسلك التطبيق إلى الرقم المخصص ومعه كود. أرسل الكود من نفس رقم الهاتف المسجل في أمد باي، وسيصلك رد آلي بكلمة مرور مؤقتة.
+
+بعد الدخول بالكلمة المؤقتة:
+1. افتح الإعدادات.
+2. اختر تغيير كلمة المرور.
+3. ضع كلمة المرور المؤقتة في خانة كلمة السر الحالية.
+4. اكتب كلمة مرور جديدة وأكدها.
+5. اضغط حفظ.
+
+مهم: إذا كان الجهاز غير مرخص، ستحتاج أولاً إلى تأكيد الجهاز من الإعدادات أو التواصل مع الدعم لتأكيده.`
+  },
+  {
+    intent: "device_verification",
+    title: "تأكيد الجهاز وترخيص الأجهزة",
+    triggers: ["تأكيد الجهاز", "تاكيد الجهاز", "ترخيص الجهاز", "ترخيص هذا الجهاز", "الجهاز غير مرخص", "تفعيل الجهاز", "كود الجهاز", "جهاز جديد", "ترخيص جهاز جديد", "ترخيص الويب", "باركود", "باركود الويب"],
+    answer: `لتأكيد الجهاز افتح التطبيق ثم: الإعدادات ← تأكيد الأجهزة.
+
+ستجد ثلاثة خيارات:
+1. ترخيص هذا الجهاز: يستخدم بعد استعادة كلمة المرور أو إعادة تثبيت التطبيق. انسخ كود الجهاز وأرسله للدعم، أو فعّل الجهاز مباشرة عبر SMS/واتساب إذا كانت الشريحة المسجلة داخل نفس الهاتف.
+2. ترخيص جهاز جديد: إذا تريد تشغيل حسابك على هاتف آخر أو أكثر من جهاز، ضع كود الجهاز الجديد ثم اضغط تأكيد.
+3. ترخيص جهاز الويب: امسح الباركود الظاهر في الويب ليتم ترخيص جهاز الويب مباشرة.
+
+الأسرع دائماً: إذا رقمك المسجل موجود في نفس الهاتف، استخدم تأكيد عبر الرسائل أو واتساب.`
+  },
+  {
+    intent: "pin_fingerprint",
+    title: "البصمة والرمز السري",
+    triggers: ["بصمة", "البصمه", "الرمز السري", "رمز سري", "نسيت الرمز", "تغيير الرمز", "تغير الرمز", "دخول بالبصمة"],
+    answer: `من الإعدادات يمكنك تفعيل أو إلغاء الدخول بالبصمة، وتفعيل الرمز السري للدخول بدلاً من كلمة المرور.
+
+إذا فعّلت الرمز السري ونسيته، احذف التطبيق وثبته من جديد حتى يتم إلغاء الرمز السري، ثم سجل الدخول بالطريقة المعتادة. بعد الدخول يمكنك ضبط رمز جديد من الإعدادات.`
+  },
+  {
+    intent: "address_currency",
+    title: "تغيير العنوان والعملة",
+    triggers: ["تغيير العنوان", "تغير العنوان", "العنوان", "عملة الجنوب", "عملة الشمال", "ريال جنوب", "ريال شمال", "الاسعار تغيرت", "الأسعار تغيرت"],
+    answer: `تغيير العنوان موجود داخل الإعدادات.
+
+العملة الأساسية للعميل هي الريال اليمني، لكن الأسعار قد تتغير بين عملة الشمال وعملة الجنوب حسب العنوان المختار داخل التطبيق.
+إذا انتقلت بين مناطق الشمال والجنوب، ادخل إلى تغيير العنوان واختر العنوان المناسب حتى تظهر الأسعار بشكل صحيح.`
+  },
+  {
+    intent: "account_creation",
+    title: "إنشاء حساب وتفعيل الحساب",
+    triggers: ["انشاء حساب", "إنشاء حساب", "فتح حساب", "تسجيل حساب", "تفعيل الحساب", "حسابي معلق", "الحساب معلق", "لم يتفعل", "ما تفعل الحساب", "تفعيل عبر الواتساب", "تفعيل عبر الرسائل"],
+    answer: `لإنشاء حساب جديد اضغط “إنشاء حساب” من واجهة الدخول، ثم أدخل:
+• الاسم الرباعي مع اللقب
+• النشاط التجاري
+• رقم الهاتف
+• العنوان
+• نوع الوثيقة: بطاقة شخصية أو جواز سفر
+• صور الوثيقة المطلوبة
+
+بعد التسجيل يظهر لك خيار انتظار موافقة الإدارة أو تفعيل الحساب مباشرة عبر واتساب أو عبر الرسائل النصية.
+
+في الوضع الطبيعي يتم التفعيل خلال دقائق قليلة، وغالباً لا يتأخر كثيراً إذا كانت البيانات صحيحة. إذا تأخر التفعيل أكثر من ساعة فقد يكون بسبب ضغط العمل أو بسبب خطأ في البيانات، مثل رفع صورة غير واضحة أو صورة ليست للبطاقة/الجواز.
+
+للمتابعة تواصل مع الدعم: ${supportInfo.phones.join(" - ")}`
+  },
+  {
+    intent: "topup",
+    title: "تغذية الحساب",
+    triggers: ["تغذية الحساب", "تغذيه الحساب", "اغذي حسابي", "أغذي حسابي", "اضيف رصيد", "ايداع", "إيداع", "اشحن حسابي", "رصيد الحساب", "حد ادنى للتغذية", "الحد الادنى", "الكريمي", "حاسب", "كاش", "جوالي", "فلوسك", "جيب", "سبا كاش", "ون كاش", "one cash", "حوالة", "حواله", "شبكة صرافة", "بطاقة امد باي", "كرت امد باي"],
+    answer: `يمكنك تغذية حسابك في أمد باي بعدة طرق، والحد الأدنى للتغذية هو ${supportInfo.minTopup}.
+
+الكريمي:
+من تطبيق الكريمي استخدم شراء من “نقطة حاسب”، أدخل المبلغ وسيظهر لك كود. انسخ الكود، ثم افتح أمد باي وأدخل الكود والمبلغ واضغط تأكيد، وسيضاف الرصيد مباشرة.
+
+محفظة كاش:
+أدخل كود الشراء الظاهر في أمد باي داخل تطبيق كاش، ثم أدخل المبلغ ورقم الهاتف. يجب أن يكون رقم المحفظة مطابقاً للرقم المسجل في أمد باي.
+
+المحافظ الأخرى:
+تعمل بنفس الفكرة غالباً، مع اختلاف الحقول حسب المحفظة. جيب وسبأ كاش وفلوسك يوضح التطبيق الحقول المطلوبة لكل واحدة.
+
+شبكات الصرافة:
+حوّل باسم: أمد باي لخدمات كروت مسبق الدفع، على رقم الشركة 712080901، ثم أدخل رقم الحوالة والمبلغ داخل أمد باي. يتم تنفيذ التغذية بعد التحقق من رقم الحوالة والمبلغ.
+
+بطاقات أمد باي:
+من شاشة بطاقة أمد باي أدخل رقم البطاقة، ثم اختر فحص أو تغذية الحساب.`
+  },
+  {
+    intent: "refund_pending",
+    title: "الاسترجاع والعمليات المعلقة",
+    triggers: ["استرجاع", "ارجاع", "ارجع مبلغ", "استرداد", "عملية معلقة", "معلقه", "فشلت العملية", "فشل", "لم تصل", "ما وصل", "تأخر الطلب", "تاخر الطلب", "عملية متأخرة", "لم ينفذ"],
+    answer: `الاسترجاع من التطبيق لا يكون متاحاً لكل العمليات.
+يمكن مراجعة أو استرجاع المبلغ فقط إذا كانت العملية فاشلة أو ما زالت معلقة وتحتاج تحقق.
+
+للمتابعة جهّز رقم الطلب أو صورة العملية، ثم تواصل مع الدعم خلال أوقات العمل:
+${supportInfo.hours}.
+
+أرقام الدعم: ${supportInfo.phones.join(" - ")}`
+  },
+  {
+    intent: "support_hours",
+    title: "أوقات الدعم والتواصل",
+    triggers: ["اوقات الدوام", "وقت الدوام", "متى تردون", "متى الدعم", "دوام الدعم", "ارقام الدعم", "رقم الدعم", "خدمة العملاء", "خدمه العملاء", "الدعم الفني"],
+    answer: `أوقات عمل الدعم:
+${supportInfo.hours}.
+
+أرقام خدمة العملاء:
+${supportInfo.phones.join(" - ")}
+
+يفضل تجهيز رقم الطلب أو صورة العملية قبل التواصل حتى يتم حل المشكلة بسرعة.`
+  },
+  {
+    intent: "sadidli",
+    title: "خدمة سددلي",
+    triggers: ["سددلي", "سدد لي", "تسديد تلقائي", "تجديد تلقائي", "باقه تلقائي", "باقة تلقائي", "رصيد تلقائي", "حد الرصيد", "الأيام المتبقية", "الايام المتبقية"],
+    answer: `سددلي خدمة تساعدك على إنشاء طلب تلقائي لتسديد الرصيد أو تجديد الباقات عند تاريخ محدد أو عند وصول الرصيد إلى حد أدنى.
+
+لإضافة طلب:
+1. افتح سددلي من التطبيق.
+2. اضغط زر الإضافة +.
+3. أدخل رقم الهاتف.
+4. اختر نوع الخدمة: رصيد أو باقة.
+5. إذا اخترت باقة، اختر نوع الباقة ويوم التنفيذ.
+6. إذا اخترت رصيد، أدخل المبلغ والحد الأدنى للرصيد والأيام المتبقية للتسديد.
+7. اضغط حفظ الطلب.
+
+تبويب العمليات يعرض ما تم تنفيذه، وتبويب التقرير يعرض الاستهلاك ويمكن تصدير تقرير PDF.`
+  },
+  {
+    intent: "transfer_balance",
+    title: "التحويل بين الحسابات وبطاقات أمد باي",
+    triggers: ["تحويل رصيد", "احول رصيد", "تحويل لحساب", "تحويل لعميل", "ارسال رصيد", "بطاقة امد باي", "كرت امد باي", "اشحن لشخص", "حساب عميل اخر", "حساب عميل آخر"],
+    answer: `التحويل بين الحسابات متاح إذا كانت الحسابات ضمن نفس مجموعة الوكيل أو الموزع أو التاجر أو النقطة.
+
+إذا كان العميل مسجلاً بنفسه ولا يوجد ضمن مجموعة، يمكنه استخدام بطاقة أمد باي:
+• يشتري بطاقة أمد باي ويرسل رقم البطاقة للشخص الآخر ليغذي حسابه.
+• أو من واجهة خدمات المزيد/شحن البطاقة يختار حساب عميل آخر، ثم يدخل رقم البطاقة ورقم حساب العميل أو رقم هاتفه، وسيتم إضافة الرصيد لحساب الشخص الآخر.`
+  },
+  {
+    intent: "roles_commissions",
+    title: "أنواع الحسابات والعمولات",
+    triggers: ["عميل", "نقطة", "نقطه", "وكيل", "تاجر", "موزع", "فرع", "عمولة", "عمولات", "نظام العمولات", "اسجل عملاء", "انشاء حسابات للعملاء", "صلاحيات"],
+    answer: `أنواع الحسابات باختصار:
+• العميل: مستخدم عادي يستطيع إنشاء حساب لنفسه واستخدام الخدمات.
+• نقطة/وكيل/تاجر: جهات أو محلات تتعامل مع العملاء، ويمكن حسب الصلاحيات إنشاء حسابات للعملاء وتغذية حساباتهم وتعليق الحسابات التي تم تسجيلها من طرفها.
+• الموزع: شخص يسجل حسابات للعملاء في المحلات أو السوق، ويحصل على عمولة تسجيل متفق عليها مثل 100 ريال يمني لكل عميل.
+• الفرع: جهة مرتبطة عبر API وتقدم خدمات أمد باي داخل نظامها أو تطبيقها.
+
+العمولات تختلف حسب الاتفاق وحسب الخدمة، وتحددها الإدارة، وتضاف عادة نهاية كل شهر.`
+  },
+  {
+    intent: "reports",
+    title: "التقارير والحصالة",
+    triggers: ["التقارير", "تقرير", "كشف حساب", "كشف", "الحصالة", "الأرصدة", "الارصدة", "السندات", "عمولاتي", "كشف حساب حسب الخدمة"],
+    answer: `قسم التقارير يساعدك على متابعة العمليات والحسابات، ويشمل مثل:
+• كشف حساب
+• الأرصدة
+• التسديدات
+• كروت الواي فاي
+• تسديدات الفروع
+• كشف حساب حسب الخدمة
+• السندات المالية مثل سندات قبض وصرف وتحويلات وعمولاتي
+
+الحصالة تعرض ملخصات حسب التاريخ، مع خيارات تصفية ونقل الإجمالي حسب المتوفر في التطبيق.`
+  },
+  {
+    intent: "cabinets",
+    title: "كبائن السداد والماء والكهرباء والواي فاي",
+    triggers: ["كبينة", "كبينه", "الماء", "الكهرباء", "واي فاي", "wifi", "شبكة واي", "رقم المشترك", "اختيار المنطقة"],
+    answer: `الكبائن داخل أمد باي تساعدك على الاستعلام أو التسديد حسب نوع الخدمة.
+
+كبينة الكهرباء أو الماء:
+أدخل رقم المشترك، ثم اختر المنطقة، وبعدها اضغط استعلام.
+
+كبينة الواي فاي:
+يمكنك البحث باسم الشبكة أو رقمها، وإضافة الشبكات للمفضلة إذا كانت متاحة.`
+  },
+  {
+    intent: "sim_management",
+    title: "إدارة الشرائح",
+    triggers: ["إدارة الشرائح", "ادارة الشرائح", "الشرائح", "أرقام الشرائح", "ارقام الشرائح", "بلفات الشرائح", "إضافة شريحة", "اضافة شريحة"],
+    answer: `إدارة الشرائح تعرض بلفات الشرائح وأرقام الشرائح وإضافة الشرائح.
+يمكنك بعد إضافة بلفات الشرائح عرض الأرقام المضافة ومعرفة المدفوع والمتبقي، وكذلك تحويل الأرقام إلى الحسابات أو النقاط أو الفروع التابعة حسب الصلاحيات المتاحة لحسابك.`
+  },
+  {
+    intent: "services_overview",
+    title: "خدمات أمد باي",
+    triggers: ["ما خدمات امد باي", "ماهي خدمات امد باي", "ايش يقدم امد باي", "ماذا يقدم", "الخدمات المتوفرة", "اقسام التطبيق", "ما هو امد باي", "ماهو امد باي"],
+    answer: `أمد باي تطبيق خدمات رقمية للسوق اليمني، يجمع للعميل خدمات متعددة في مكان واحد، منها:
+• تسديد وشحن الاتصالات والإنترنت المحلي.
+• شحن الألعاب مثل PUBG وFree Fire وMobile Legends وRoblox وغيرها.
+• بطاقات رقمية واشتراكات مثل Google Play وiTunes وRazer Gold وPlayStation وSteam وNetflix وشاهد ووجيز وغيرها.
+• بطاقات اتصالات السعودية والخليج مثل STC وموبايلي وزين وليبارا وغيرها.
+• تغذية الحساب عبر المحافظ والحوالات والصرافين وبطاقات أمد باي.
+• خدمات الدعم والاستفسارات وتوثيق الحساب وطلبات التعديل.`
+  },
+];
+
 const botProducts = [
-  { key: "pubg", label: "ببجي PUBG", detect: ["pubg", "شده", "شدات", "uc", "يوسي"], catalog: ["pubg", "بوبجي", "ببجي"], section: "شحن الألعاب", howTo: "من التطبيق افتح قسم شحن الألعاب، اختر PUBG أو ببجي، اختر الفئة المطلوبة مثل 60 شدة، أدخل ID اللاعب أو البيانات المطلوبة بدقة، ثم راجع السعر واضغط تأكيد." },
-  { key: "freefire", label: "فري فاير", detect: ["freefire", "فري", "فاير"], catalog: ["freefire", "فري", "فاير"], section: "شحن الألعاب", howTo: "افتح شحن الألعاب، اختر Free Fire، اختر فئة الجواهر، أدخل ID الحساب المطلوب، ثم أكد الطلب من رصيدك في أمد باي." },
-  { key: "mobilelegends", label: "موبايل ليجيندز", detect: ["mobilelegends", "ليجندز", "ليجند"], catalog: ["mobilelegends", "ليجندز"], section: "شحن الألعاب", howTo: "افتح شحن الألعاب، اختر Mobile Legends، اختر الفئة، أدخل ID والسيرفر إن طُلب، ثم أكد العملية." },
+  { key: "pubg", label: "ببجي PUBG", detect: ["pubg", "بوبجي", "ببجي", "ببحي", "شده", "شدات", "uc", "يوسي"], catalog: ["pubg", "بوبجي", "ببجي"], section: "شحن الألعاب", howTo: "افتح قسم شحن الألعاب، اختر PUBG أو ببجي، اختر الفئة المطلوبة، أدخل ID اللاعب أو البيانات المطلوبة بدقة، ثم راجع السعر واضغط تأكيد." },
+  { key: "freefire", label: "فري فاير", detect: ["freefire", "فري فاير", "فري", "فاير", "جواهر"], catalog: ["freefire", "فري", "فاير"], section: "شحن الألعاب", howTo: "افتح قسم شحن الألعاب، اختر Free Fire، اختر فئة الجواهر، أدخل ID الحساب المطلوب، ثم أكد الطلب من رصيدك في أمد باي." },
+  { key: "mobilelegends", label: "موبايل ليجيندز", detect: ["mobilelegends", "موبايل ليجيندز", "ليجندز", "ليجند"], catalog: ["mobilelegends", "ليجندز"], section: "شحن الألعاب", howTo: "افتح شحن الألعاب، اختر Mobile Legends، اختر الفئة، أدخل ID والسيرفر إن طُلب، ثم أكد العملية." },
   { key: "roblox", label: "روبلكس", detect: ["روبلكس", "roblox", "روبوكس"], catalog: ["روبلكس", "roblox"], section: "شحن الألعاب" },
   { key: "genshin", label: "جنشن إمباكت", detect: ["جنشن", "جينشن", "genshin"], catalog: ["جنشن", "genshin"], section: "شحن الألعاب" },
   { key: "efootball", label: "eFootball", detect: ["اي فوتبول", "ايفوتبول", "efootball"], catalog: ["فوتبول", "efootball"], section: "شحن الألعاب" },
-  { key: "yemenmobile", label: "يمن موبايل", detect: ["yemenmobile", "مزايا", "هدايا", "برمجه"], catalog: ["yemenmobile", "يمن موبايل", "مزايا", "هدايا"], section: "تسديدات وباقات محلية" },
-  { key: "sabafon", label: "سبأفون", detect: ["sabafon", "سبافون", "سبا فون"], catalog: ["sabafon", "سبافون"], section: "تسديدات وباقات محلية" },
-  { key: "youmtn", label: "يو MTN", detect: ["youmtn", "mtn"], catalog: ["youmtn", "mtn", "يو mtn"], section: "تسديدات وباقات محلية" },
-  { key: "wai", label: "واي", detect: ["wai"], catalog: ["wai", "واي"], section: "تسديدات وباقات محلية" },
-  { key: "yamennet", label: "يمن نت ADSL", detect: ["yamennet", "adsl"], catalog: ["yamennet", "يمن نت", "adsl"], section: "الإنترنت الثابت" },
-  { key: "yemen4g", label: "يمن فورجي", detect: ["yemen4g", "فورجي"], catalog: ["yemen4g", "يمن فورجي", "4g"], section: "الإنترنت" },
-  { key: "adennet", label: "عدن نت", detect: ["adennet"], catalog: ["adennet", "عدن نت"], section: "الإنترنت" },
-  { key: "googleplay", label: "Google Play", detect: ["googleplay"], catalog: ["googleplay", "جوجل بلاي"], section: "البطاقات الرقمية" },
-  { key: "playstation", label: "PlayStation", detect: ["playstation"], catalog: ["playstation", "بلايستيشن"], section: "البطاقات الرقمية" },
-  { key: "razer", label: "Razer Gold", detect: ["razer"], catalog: ["razer", "ريزر", "رايزر"], section: "البطاقات الرقمية" },
-  { key: "netflix", label: "Netflix", detect: ["netflix"], catalog: ["netflix", "نتفلكس"], section: "الاشتراكات" },
+  { key: "yemenmobile", label: "يمن موبايل", detect: ["يمن موبايل", "yemenmobile", "مزايا", "هدايا", "برمجه", "برمجة"], catalog: ["يمن موبايل", "مزايا", "هدايا"], section: "تسديدات وباقات محلية" },
+  { key: "sabafon", label: "سبأفون", detect: ["سبافون", "سبأفون", "sabafon", "سبا فون"], catalog: ["سبافون", "سبأفون"], section: "تسديدات وباقات محلية" },
+  { key: "youmtn", label: "يو MTN", detect: ["يو", "you", "mtn", "ام تي ان", "إم تي إن"], catalog: ["يو MTN", "mtn", "يو"], section: "تسديدات وباقات محلية" },
+  { key: "wai", label: "واي", detect: ["واي", "y telecom", "wai"], catalog: ["واي"], section: "تسديدات وباقات محلية" },
+  { key: "yamennet", label: "يمن نت ADSL", detect: ["يمن نت", "adsl", "اي دي اس ال"], catalog: ["يمن نت", "adsl"], section: "الإنترنت الثابت" },
+  { key: "yemen4g", label: "يمن فورجي", detect: ["يمن فورجي", "yemen 4g", "4g"], catalog: ["يمن فورجي", "4g"], section: "الإنترنت" },
+  { key: "adennet", label: "عدن نت", detect: ["عدن نت"], catalog: ["عدن نت"], section: "الإنترنت" },
+  { key: "googleplay", label: "Google Play", detect: ["جوجل بلاي", "google play", "googleplay"], catalog: ["جوجل بلاي", "googleplay"], section: "البطاقات الرقمية" },
+  { key: "playstation", label: "PlayStation", detect: ["بلايستيشن", "playstation", "psn"], catalog: ["بلايستيشن", "playstation"], section: "البطاقات الرقمية" },
+  { key: "razer", label: "Razer Gold", detect: ["رايزر", "ريزر", "razer"], catalog: ["razer", "ريزر", "رايزر"], section: "البطاقات الرقمية" },
+  { key: "netflix", label: "Netflix", detect: ["نتفلكس", "netflix"], catalog: ["نتفلكس", "netflix"], section: "الاشتراكات" },
   { key: "shahid", label: "شاهد VIP", detect: ["شاهد", "shahid"], catalog: ["شاهد", "shahid"], section: "الاشتراكات" },
   { key: "wajeez", label: "وجيز", detect: ["وجيز", "wajeez"], catalog: ["وجيز", "wajeez"], section: "الاشتراكات" },
+  { key: "crypto", label: "العملات الرقمية والبطاقات المالية", detect: ["تيثر", "tether", "binance", "بينانس", "بايير", "payeer", "بيرفكت", "perfect money", "pm", "عملات رقميه", "عملات رقمية"], catalog: ["تيثر", "tether", "binance", "بايير", "payeer", "perfect", "بيرفكت"], section: "البطاقات المالية" },
 ];
 
-const botStopWords = new Set(["كم", "سعر", "بكم", "كيف", "اشحن", "اشحنه", "اشحنها", "شحن", "اشتري", "شراء", "اريد", "ابغى", "ابي", "داخل", "من", "في", "التطبيق", "تطبيق", "امد", "باي", "حق", "ايش", "ما", "هو", "هي", "عندي", "لدي", "لو", "هل", "ارسل", "ممكن", "طريقه", "طريقة", "الخدمة", "الخدمات", "لوسمحت", "سمحت"]);
+const botStopWords = new Set(["كم", "سعر", "بكم", "كيف", "اشحن", "اشحنه", "اشحنها", "شحن", "اشتري", "شراء", "اريد", "ابغى", "ابي", "داخل", "من", "في", "التطبيق", "تطبيق", "امد", "باي", "حق", "ايش", "ما", "هو", "هي", "عندي", "لدي", "لو", "هل", "ارسل", "ممكن", "طريقه", "طريقة", "الخدمة", "الخدمات", "لوسمحت", "سمحت", "علا", "على"]);
 
 function getCatalogText(item) {
   return normalizeArabicText([item.source, item.service, item.title, item.price, item.quantity, item.details].join(" "));
+}
+
+function validCatalogPrice(item) {
+  const value = Number(String(item.price || "").replace(/,/g, ""));
+  return Number.isFinite(value) && value > 1;
 }
 
 function extractNumbers(text) {
@@ -314,7 +525,7 @@ function detectProduct(userText) {
   const q = normalizeArabicText(userText);
   let found = botProducts.find((product) => product.detect.some((term) => q.includes(normalizeArabicText(term))));
   if (!found && (q.includes("شده") || q.includes("شدات") || q.includes("uc") || q.includes("يوسي"))) found = botProducts.find((product) => product.key === "pubg");
-  if (!found && q.includes("جواهر") && q.includes("فاير")) found = botProducts.find((product) => product.key === "freefire");
+  if (!found && q.includes("جواهر")) found = botProducts.find((product) => product.key === "freefire");
   return found;
 }
 
@@ -326,7 +537,7 @@ function isGreeting(userText) {
 
 function isThanks(userText) {
   const q = normalizeArabicText(userText);
-  return ["شكرا", "مشكور", "تسلم", "تمام", "يعطيك العافيه"].some((word) => q.includes(normalizeArabicText(word))) && q.split(" ").length <= 7;
+  return ["شكرا", "مشكور", "تسلم", "تمام", "يعطيك العافيه", "يعطيك العافية"].some((word) => q.includes(normalizeArabicText(word))) && q.split(" ").length <= 7;
 }
 
 function hasPriceIntent(userText) {
@@ -336,7 +547,7 @@ function hasPriceIntent(userText) {
 
 function hasHowToIntent(userText) {
   const q = normalizeArabicText(userText);
-  return q.includes("كيف") || q.includes("طريقه") || q.includes("اشحن") || q.includes("اشتري") || q.includes("استخدم") || q.includes("اسوي") || q.includes("افعل");
+  return q.includes("كيف") || q.includes("طريقه") || q.includes("طريقة") || q.includes("اشحن") || q.includes("اشتري") || q.includes("استخدم") || q.includes("اسوي") || q.includes("افعل") || q.includes("وين") || q.includes("من اين");
 }
 
 function levenshteinDistance(a, b) {
@@ -383,9 +594,9 @@ function catalogSearch(query, limit = 5) {
   const terms = normalizedQuery.split(" ").filter((term) => term.length > 1 && !botStopWords.has(term));
   if (!terms.length && !product && !wantedNumbers.length) return [];
 
-  let pool = amdPayCatalog;
+  let pool = amdPayCatalog.filter(validCatalogPrice);
   if (product) {
-    const strictPool = amdPayCatalog.filter((item) => catalogBelongsToProduct(item, product));
+    const strictPool = pool.filter((item) => catalogBelongsToProduct(item, product));
     if (strictPool.length) pool = strictPool;
   }
 
@@ -393,22 +604,22 @@ function catalogSearch(query, limit = 5) {
     const searchable = getCatalogText(item);
     const searchableTokens = searchable.split(" ");
     let score = 0;
-    if (product && catalogBelongsToProduct(item, product)) score += 80;
+    if (product && catalogBelongsToProduct(item, product)) score += 100;
     wantedNumbers.forEach((num) => {
       const hit = exactNumberHit(item, num);
-      if (hit === 3) score += 80;
-      else if (hit === 1) score += 18;
+      if (hit === 3) score += 120;
+      else if (hit === 1) score += 20;
     });
     terms.forEach((term) => {
-      if (searchable.includes(term)) score += term.length >= 3 ? 8 : 2;
-      else if (!product && tokenLooksClose(term, searchableTokens)) score += 2;
+      if (searchable.includes(term)) score += term.length >= 3 ? 10 : 2;
+      else if (!product && tokenLooksClose(term, searchableTokens)) score += 3;
     });
     if (hasPriceIntent(query) && item.price) score += 3;
-    if (normalizedQuery.includes("بطاق") && searchable.includes("بطاق")) score += 10;
-    if (normalizedQuery.includes("استرداد") && searchable.includes("استرداد")) score += 10;
+    if (normalizedQuery.includes("بطاق") && searchable.includes("بطاق")) score += 12;
+    if (normalizedQuery.includes("استرداد") && searchable.includes("استرداد")) score += 12;
     if (normalizedQuery.includes("مباشر") && !searchable.includes("استرداد")) score += 6;
     return { item, score };
-  }).filter((entry) => entry.score > (product ? 75 : 7)).sort((a, b) => b.score - a.score);
+  }).filter((entry) => entry.score > (product ? 95 : 10)).sort((a, b) => b.score - a.score);
 
   const seen = new Set();
   return scored.map((entry) => entry.item).filter((item) => {
@@ -430,88 +641,155 @@ function extractPackageName(item) {
 function formatCatalogItem(item, compact = false) {
   const name = extractPackageName(item);
   const service = item.service && item.service !== name ? item.service : "";
-  const price = item.price && item.price !== "0" ? `السعر: ${item.price}` : "السعر: يظهر داخل التطبيق حسب الفئة";
+  const price = item.price && item.price !== "0" ? `السعر: ${item.price}` : "";
   const quantity = item.quantity ? `الفئة/الكمية: ${item.quantity}` : "";
   const details = item.details ? `التفاصيل: ${item.details}` : "";
-  return compact ? `• ${[service, name].filter(Boolean).join(" — ")} — ${price}${quantity ? ` — ${quantity}` : ""}` : `• ${[service, name].filter(Boolean).join(" — ")}\n  ${[price, quantity, details].filter(Boolean).join("\n  ")}`;
+  return compact ? `• ${[service, name].filter(Boolean).join(" — ")} — ${[price, quantity].filter(Boolean).join(" — ")}` : `• ${[service, name].filter(Boolean).join(" — ")}\n  ${[price, quantity, details].filter(Boolean).join("\n  ")}`;
 }
 
 function buildPriceReply(userText) {
   const product = detectProduct(userText);
   const wantedNumbers = extractNumbers(userText);
-  const matches = catalogSearch(userText, product && wantedNumbers.length ? 3 : 5);
+  const limit = product && wantedNumbers.length ? 2 : 4;
+  const matches = catalogSearch(userText, limit);
   if (!matches.length) {
     return {
-      text: product ? `فهمت أنك تسأل عن ${product.label}، لكن لم أجد الفئة المطلوبة بدقة في البيانات الحالية. اكتب الفئة بوضوح مثل: 60 شدة، 325 شدة، 1 جيجا، أو اضغط تحويل إلى واتساب الدعم.` : "لم أجد السعر بدقة. اكتب اسم الخدمة والفئة مثل: 60 شدة ببجي، باقة يمن موبايل 5 جيجا، أو بطاقة Google Play 10 دولار.",
+      text: product ? `فهمت أنك تسأل عن ${product.label}. لم أجد الفئة المطلوبة بدقة في البيانات الحالية. اكتب الفئة بشكل أوضح مثل: 60 شدة، 325 شدة، 1 جيجا، 5 جيجا.` : "لم أجد السعر بدقة. اكتب اسم الخدمة والفئة معاً مثل: 60 شدة ببجي، باقة يمن موبايل 5 جيجا، أو بطاقة Google Play 10 دولار.",
       showWhatsApp: true,
     };
   }
-  const header = product ? (wantedNumbers.length ? `بخصوص ${product.label} وفئة ${wantedNumbers.join(" / ")}، وجدت هذه النتيجة الأقرب:` : `هذه أقرب خيارات ${product.label} المتوفرة:`) : "وجدت لك النتيجة الأقرب:";
-  if (matches.length === 1) {
-    return { text: `${header}\n${formatCatalogItem(matches[0])}\n\nملاحظة: السعر النهائي المؤكد هو السعر الظاهر داخل تطبيق أمد باي قبل تأكيد الطلب.`, showWhatsApp: true };
-  }
-  return { text: `${header}\n${matches.map((item) => formatCatalogItem(item, true)).join("\n")}\n\nاختر النوع المطابق داخل التطبيق، لأن بعض الخدمات لها شحن مباشر وبطاقات استرداد. السعر النهائي المؤكد يظهر قبل تأكيد الطلب.`, showWhatsApp: true };
+  const header = product ? (wantedNumbers.length ? `${product.label} — أقرب نتيجة للفئة ${wantedNumbers.join(" / ")}:` : `${product.label} — الخيارات المتوفرة الأقرب لسؤالك:`) : "أقرب نتيجة لسؤالك:";
+  const body = matches.length === 1 ? formatCatalogItem(matches[0]) : matches.map((item) => formatCatalogItem(item, true)).join("\n");
+  return { text: `${header}\n${body}\n\nالسعر النهائي يظهر داخل التطبيق قبل تأكيد الطلب، وقد يتغير حسب التوفر والتحديثات.`, showWhatsApp: false };
 }
 
 function buildHowToReply(userText) {
   const product = detectProduct(userText);
-  const productLabel = product?.label || "الخدمة المطلوبة";
-  const examples = product ? catalogSearch(userText, 2) : [];
+  if (product) {
+    return {
+      text: `طريقة تنفيذ ${product.label} داخل أمد باي:\n${product.howTo || "افتح القسم المناسب من الصفحة الرئيسية، اختر الخدمة، حدد الفئة، أدخل البيانات المطلوبة بعناية، ثم راجع السعر واضغط تأكيد."}\n\nتأكد من كتابة بيانات الحساب أو الرقم بشكل صحيح قبل التأكيد.`,
+      showWhatsApp: false,
+    };
+  }
   return {
-    text: `طريقة تنفيذ ${productLabel} داخل تطبيق أمد باي:\n` + (product?.howTo ? `${product.howTo}\n` : "1. افتح تطبيق أمد باي وسجل الدخول.\n2. تأكد أن حسابك فيه رصيد كافٍ أو قم بتغذية الحساب أولاً.\n3. اختر القسم المناسب من الصفحة الرئيسية.\n4. اختر الفئة أو الباقة المطلوبة.\n5. أدخل البيانات المطلوبة بعناية، ثم راجع السعر واضغط تأكيد.\n") + (examples.length ? `\nأقرب خيارات مرتبطة بسؤالك:\n${examples.map((item) => formatCatalogItem(item, true)).join("\n")}\n` : "") + "\nإذا لم تجد الخدمة داخل التطبيق أو كان عندك طلب يحتاج متابعة، اضغط تحويل إلى واتساب الدعم.",
-    showWhatsApp: true,
+    text: "طريقة تنفيذ الخدمة داخل أمد باي:\n1. افتح التطبيق وسجل الدخول.\n2. تأكد أن حسابك يحتوي على رصيد كافٍ.\n3. اختر القسم المناسب من الصفحة الرئيسية.\n4. اختر الخدمة والفئة المطلوبة.\n5. أدخل البيانات المطلوبة بدقة ثم اضغط تأكيد.",
+    showWhatsApp: false,
   };
+}
+
+function getKnowledgeReply(userText) {
+  const q = normalizeArabicText(userText);
+  let best = null;
+  amdPaySupportKnowledge.forEach((entry) => {
+    let score = 0;
+    entry.triggers.forEach((trigger) => {
+      const t = normalizeArabicText(trigger);
+      if (q.includes(t)) score += Math.max(10, t.length);
+    });
+    if (!best || score > best.score) best = { entry, score };
+  });
+  return best && best.score >= 10 ? { text: best.entry.answer, showWhatsApp: ["refund_pending", "support_hours", "account_creation"].includes(best.entry.intent) } : null;
 }
 
 function getAmdBotReply(userText) {
   const q = normalizeArabicText(userText);
-  const adminTerms = ["اداره", "لوحه التحكم", "ارباح", "ربح", "عموله الوكيل", "api", "مزود", "مورد", "كود برمجي", "حذف خدمه", "تعديل سعر", "صلاحيات", "قاعده بيانات"];
+  const adminTerms = ["لوحه التحكم", "مزود", "مورد", "كود برمجي", "حذف خدمه", "تعديل سعر", "قاعده بيانات"];
   if (!q) return { text: "اكتب سؤالك عن أمد باي، مثل: كم سعر 60 شدة ببجي؟ أو كيف أغذي حسابي؟", showWhatsApp: false };
-  if (isGreeting(userText)) return { text: "مرحباً بك في مساعد أمد باي 👋\nأنا هنا لمساعدتك كمستخدم للتطبيق. اسألني عن شحن الألعاب، البطاقات الرقمية، التسديدات، الباقات، الأسعار، تغذية الحساب، أو طريقة استخدام التطبيق.", showWhatsApp: false };
-  if (isThanks(userText)) return { text: "العفو، حياك الله 🌟\nأي سؤال عن خدمات أمد باي أو طريقة الشحن والتغذية أنا جاهز أساعدك.", showWhatsApp: false };
-  if (adminTerms.some((term) => q.includes(normalizeArabicText(term)))) return { text: "هذا المساعد مخصص لمعلومات العملاء فقط ولا يقدم أي معلومات أو صلاحيات إدارية. إذا كان سؤالك عن طلبك أو حسابك كعميل، أستطيع تحويلك إلى واتساب الدعم.", showWhatsApp: true };
-  if (q.includes("تغذ") || q.includes("ايداع") || q.includes("رصيد حساب") || q.includes("اشحن حسابي") || q.includes("اضيف رصيد")) return { text: `تستطيع تغذية حسابك في أمد باي عبر: ${amdPayKnowledge.walletTopup.join("، ")}.\nبعد وصول الرصيد يمكنك شراء الخدمات من داخل التطبيق. إذا أودعت ولم يظهر الرصيد، جهّز صورة العملية أو رقمها ثم تواصل مع الدعم.`, showWhatsApp: true };
-  if (q.includes("خدمات") || q.includes("ايش تقدم") || q.includes("ماذا يقدم") || q.includes("اقسام") || q.includes("ماهو امد باي") || q.includes("ما هو امد باي")) return { text: `أمد باي تطبيق خدمات رقمية للسوق اليمني. أهم ما يقدمه للعميل:\n${amdPayKnowledge.customerServices.map((item) => `• ${item}`).join("\n")}`, showWhatsApp: false };
-  if (q.includes("تحميل") || q.includes("googleplay") || q.includes("رابط التطبيق")) return { text: "يمكن تحميل تطبيق أمد باي من زر Google Play الموجود في الصفحة. بعد التحميل قم بتسجيل الدخول أو إنشاء حساب، ثم غذّي حسابك لاستخدام الخدمات.", showWhatsApp: false };
-  if (q.includes("توثيق") || q.includes("بطاقه شخصيه") || q.includes("الاسم") || q.includes("تعديل الاسم")) return { text: "يمكنك طلب توثيق الحساب بالبطاقة الشخصية أو طلب تعديل الاسم من قسم الدعم داخل التطبيق. في الطلبات التي تحتاج مراجعة، يفضل التواصل مع واتساب الدعم وإرسال البيانات المطلوبة بوضوح.", showWhatsApp: true };
-  if (q.includes("مشكله") || q.includes("خطا") || q.includes("لم تصل") || q.includes("تاخير") || q.includes("استرجاع") || q.includes("لم ينفذ")) return { text: "إذا عندك مشكلة في طلب منفذ أو خدمة لم تصل، جهّز رقم الطلب أو صورة العملية وتواصل مع واتساب الدعم حتى يتم مراجعتها. لا تشارك كلمة المرور أو بيانات حساسة.", showWhatsApp: true };
-  if (hasHowToIntent(userText) && !hasPriceIntent(userText)) return buildHowToReply(userText);
+  if (isGreeting(userText)) return { text: "مرحباً بك في مساعد أمد باي 👋\nأنا هنا لمساعدتك في خدمات التطبيق، الأسعار، التغذية، الحسابات، الإعدادات، والتسديدات. اكتب سؤالك وسأحاول أعطيك جواب مباشر وواضح.", showWhatsApp: false };
+  if (isThanks(userText)) return { text: "العفو، حياك الله 🌟\nهل تحتاج تفاصيل أكثر عن خدمة معينة؟", showWhatsApp: false };
+  if (adminTerms.some((term) => q.includes(normalizeArabicText(term)))) return { text: "هذا المساعد مخصص لخدمة العملاء ومستخدمي التطبيق فقط، لذلك لا أستطيع تقديم معلومات إدارية أو برمجية داخلية.", showWhatsApp: false };
+
+  const knowledgeReply = getKnowledgeReply(userText);
+  if (knowledgeReply && !hasPriceIntent(userText)) return knowledgeReply;
+  if (hasHowToIntent(userText) && !hasPriceIntent(userText) && !knowledgeReply) return buildHowToReply(userText);
   if (hasPriceIntent(userText) || detectProduct(userText)) return buildPriceReply(userText);
+  if (knowledgeReply) return knowledgeReply;
+
   const matches = catalogSearch(userText, 3);
-  if (matches.length) return { text: `وجدت نتائج قريبة من سؤالك:\n${matches.map((item) => formatCatalogItem(item, true)).join("\n")}\n\nاكتب الفئة أو الاسم بشكل أوضح إذا تريد نتيجة أدق، مثل: 60 شدة ببجي أو باقة يمن موبايل 5 جيجا.`, showWhatsApp: true };
-  return { text: "لم أجد إجابة دقيقة من المعلومات المتوفرة لدي. اكتب اسم الخدمة والفئة بشكل أوضح، أو اضغط تحويل إلى واتساب الدعم ليتم الرد عليك مباشرة.", showWhatsApp: true };
+  if (matches.length) return { text: `هذه أقرب نتيجة مطابقة لسؤالك:\n${matches.map((item) => formatCatalogItem(item, true)).join("\n")}\n\nإذا تريد نتيجة أدق اكتب اسم الخدمة والفئة معاً.`, showWhatsApp: false };
+  return { text: "لم أتعرف على المطلوب بدقة. اكتب اسم الخدمة أو الفئة بشكل أوضح، مثل: ببجي 60 شدة، تغذية عبر الكريمي، استعادة كلمة المرور، أو تأكيد الجهاز.", showWhatsApp: true };
+}
+
+function playBotNotification() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(740, ctx.currentTime);
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.28);
+  } catch (error) {
+    // ignore audio errors
+  }
 }
 
 function AmdPayBot() {
   const [open, setOpen] = React.useState(false);
   const [input, setInput] = React.useState("");
+  const [isTyping, setIsTyping] = React.useState(false);
   const [messages, setMessages] = React.useState([
     {
       from: "bot",
-      text: "مرحباً بك في مساعد أمد باي 👋\nاسألني عن الخدمات، الأسعار، شحن الألعاب، البطاقات، التسديدات، أو طريقة تغذية الحساب.",
+      text: "مرحباً بك في مساعد أمد باي 👋\nاسألني عن الخدمات، الأسعار، شحن الألعاب، البطاقات، التسديدات، تغذية الحساب، الإعدادات، أو طريقة استخدام التطبيق.",
       showWhatsApp: false,
     },
   ]);
+  const messagesEndRef = React.useRef(null);
+  const idleTimerRef = React.useRef(null);
 
   const quickQuestions = [
     "مرحبا",
     "كم سعر 60 شدة ببجي؟",
-    "كيف أشحن ببجي من التطبيق؟",
     "كيف أغذي حسابي؟",
-    "ما خدمات أمد باي؟",
+    "كيف أستعيد كلمة المرور؟",
+    "كيف أوثق الجهاز؟",
   ];
+
+  React.useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isTyping, open]);
+
+  React.useEffect(() => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    const last = messages[messages.length - 1];
+    if (!last || last.from !== "bot" || messages.length < 2) return;
+    idleTimerRef.current = setTimeout(() => {
+      setMessages((prev) => {
+        const latest = prev[prev.length - 1];
+        if (!latest || latest.from !== "bot" || latest.followUp) return prev;
+        playBotNotification();
+        return [
+          ...prev,
+          { from: "bot", text: "هل تحتاج تفاصيل أكثر عن هذه الخدمة؟ يمكنك كتابة اسم الخدمة أو الفئة وسأوضح لك الخطوات أو السعر المتوفر.", showWhatsApp: false, followUp: true },
+        ];
+      });
+    }, 60000);
+    return () => clearTimeout(idleTimerRef.current);
+  }, [messages]);
 
   const sendMessage = (text) => {
     const cleanText = String(text || input).trim();
-    if (!cleanText) return;
+    if (!cleanText || isTyping) return;
 
-    const reply = getAmdBotReply(cleanText);
-    setMessages((prev) => [
-      ...prev,
-      { from: "user", text: cleanText },
-      { from: "bot", ...reply, originalQuestion: cleanText },
-    ]);
+    setMessages((prev) => [...prev, { from: "user", text: cleanText }]);
     setInput("");
+    setIsTyping(true);
+
+    const delay = Math.min(1600, Math.max(700, cleanText.length * 25));
+    setTimeout(() => {
+      const reply = getAmdBotReply(cleanText);
+      setMessages((prev) => [...prev, { from: "bot", ...reply, originalQuestion: cleanText }]);
+      setIsTyping(false);
+      if (!open) playBotNotification();
+    }, delay);
   };
 
   const lastUserQuestion = [...messages].reverse().find((message) => message.from === "user")?.text || "مرحباً، أحتاج مساعدة بخصوص أمد باي";
@@ -551,12 +829,20 @@ function AmdPayBot() {
                   {message.showWhatsApp && (
                     <a href={buildWhatsAppSupportLink(message.originalQuestion || lastUserQuestion)} target="_blank" rel="noreferrer" className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 font-black text-white">
                       <MessageCircle className="h-4 w-4" />
-                      تحويل السؤال إلى واتساب
+                      تواصل مع الدعم عبر واتساب
                     </a>
                   )}
                 </div>
               </div>
             ))}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="rounded-2xl bg-white p-3 text-sm font-black text-[#234b87] shadow-sm ring-1 ring-slate-200">
+                  جاري البحث والتحقق...
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="border-t border-slate-200 bg-white p-4">
