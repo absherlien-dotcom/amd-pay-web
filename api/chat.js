@@ -9,35 +9,12 @@ export default async function handler(req, res) {
 
     if (!apiKey) {
       return res.status(200).json({
-        reply: "مفتاح Gemini غير موجود في إعدادات Vercel.",
+        reply: "المساعد غير مفعّل حالياً. يرجى التواصل مع خدمة العملاء.",
       });
     }
 
     if (!message || !String(message).trim()) {
       return res.status(200).json({ reply: "اكتب سؤالك وسأساعدك." });
-    }
-
-    const modelsResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
-    );
-
-    const modelsData = await modelsResponse.json();
-
-    if (!modelsResponse.ok) {
-      return res.status(200).json({
-        reply: "خطأ في جلب موديلات Gemini: " + (modelsData?.error?.message || JSON.stringify(modelsData)),
-      });
-    }
-
-    const availableModel =
-      modelsData?.models?.find((m) =>
-        m.supportedGenerationMethods?.includes("generateContent")
-      )?.name;
-
-    if (!availableModel) {
-      return res.status(200).json({
-        reply: "لم أجد أي موديل Gemini يدعم generateContent على هذا المفتاح.",
-      });
     }
 
     const systemPrompt = `
@@ -76,38 +53,83 @@ export default async function handler(req, res) {
       { role: "user", parts: [{ text: String(message).trim() }] },
     ];
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/${availableModel}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents,
-          generationConfig: {
-            temperature: 0.45,
-            topP: 0.9,
-            maxOutputTokens: 650,
-          },
-        }),
-      }
+    const modelsResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
     );
 
-    const data = await response.json();
+    const modelsData = await modelsResponse.json();
 
-    if (!response.ok) {
+    const availableModels =
+      modelsData?.models
+        ?.filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+        ?.map((m) => m.name) || [];
+
+    const preferredModels = [
+      "models/gemini-2.0-flash-lite",
+      "models/gemini-1.5-flash-8b",
+      "models/gemini-1.5-flash",
+      "models/gemini-pro",
+      ...availableModels,
+    ];
+
+    const uniqueModels = [...new Set(preferredModels)].filter((m) =>
+      availableModels.includes(m)
+    );
+
+    if (!uniqueModels.length) {
       return res.status(200).json({
-        reply: "خطأ من Gemini: " + (data?.error?.message || JSON.stringify(data)),
+        reply: "المساعد الذكي غير متاح مؤقتًا. يرجى المحاولة بعد قليل.",
       });
     }
 
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "لم يصل رد من Gemini. التفاصيل: " + JSON.stringify(data);
+    let lastError = "";
 
-    return res.status(200).json({ reply });
+    for (const model of uniqueModels) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents,
+              generationConfig: {
+                temperature: 0.45,
+                topP: 0.9,
+                maxOutputTokens: 650,
+              },
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const reply =
+            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+            "لم أفهم سؤالك جيدًا، ممكن توضحه أكثر؟";
+
+          return res.status(200).json({ reply });
+        }
+
+        lastError = data?.error?.message || JSON.stringify(data);
+
+        if (!lastError.includes("high demand") && !lastError.includes("overloaded")) {
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 800));
+      }
+    }
+
+    return res.status(200).json({
+      reply:
+        "المساعد مشغول حاليًا بسبب ضغط مؤقت. جرّب بعد لحظات، أو اكتب سؤالك مرة أخرى وسأحاول مساعدتك.",
+    });
   } catch (error) {
     return res.status(200).json({
-      reply: "خطأ داخلي: " + error.message,
+      reply:
+        "حدث ضغط مؤقت على المساعد. حاول مرة أخرى بعد لحظات.",
     });
   }
 }
