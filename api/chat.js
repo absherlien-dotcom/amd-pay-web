@@ -1,4 +1,5 @@
 import { AMD_PAY_KNOWLEDGE } from "./amdPayKnowledge.js";
+import { AMD_PAY_SERVICES } from "./services.js";
 
 export default async function handler(req, res) {
   try {
@@ -19,6 +20,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ reply: "اكتب سؤالك وسأساعدك." });
     }
 
+    const userMessage = String(message).trim();
+
     const systemPrompt = `
 أنت "مساعد أمد باي" لخدمة العملاء داخل الموقع والتطبيق.
 تحدث كموظف دعم يمني ذكي، محترم، ودود، واضح، ومختصر.
@@ -26,11 +29,14 @@ export default async function handler(req, res) {
 
 ${AMD_PAY_KNOWLEDGE}
 
+${AMD_PAY_SERVICES}
+
 قواعد الرد النهائية:
-- أجب على رسالة المستخدم بناءً على معلومات أمد باي فقط.
+- أجب على رسالة المستخدم بناءً على معلومات أمد باي والخدمات المذكورة فقط.
 - إذا كانت الرسالة تحية، رد بتحية لطيفة واسأل كيف يمكنك مساعدته.
 - إذا كان السؤال غير واضح، اطلب توضيحًا بسيطًا.
-- إذا سأل عن سعر خدمة، أخبره أن السعر النهائي يظهر داخل التطبيق قبل تأكيد الطلب.
+- إذا سأل عن توفر خدمة، أخبره بناءً على قائمة الخدمات.
+- إذا سأل عن سعر خدمة، أخبره أن الأسعار قد تتغير وأن السعر النهائي يظهر داخل التطبيق قبل تأكيد الطلب.
 - إذا طلب تنفيذ عملية أو استرجاع أو تعديل حساب، وضّح أن ذلك يحتاج خدمة العملاء.
 - إذا كانت المشكلة تحتاج إدارة، حوّل المستخدم إلى واتساب الدعم.
 - لا تطلب كلمة المرور أو رمز التحقق أو أي بيانات حساسة.
@@ -42,7 +48,7 @@ ${AMD_PAY_KNOWLEDGE}
         role: msg.from === "bot" ? "model" : "user",
         parts: [{ text: msg.text || "" }],
       })),
-      { role: "user", parts: [{ text: String(message).trim() }] },
+      { role: "user", parts: [{ text: userMessage }] },
     ];
 
     const modelsResponse = await fetch(
@@ -86,9 +92,9 @@ ${AMD_PAY_KNOWLEDGE}
             body: JSON.stringify({
               contents,
               generationConfig: {
-                temperature: 0.35,
-                topP: 0.85,
-                maxOutputTokens: 650,
+                temperature: 0.3,
+                topP: 0.8,
+                maxOutputTokens: 700,
               },
             }),
           }
