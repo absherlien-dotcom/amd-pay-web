@@ -24,57 +24,55 @@ export default async function handler(req, res) {
     const servicesContext = getRelevantServices(userMessage);
 
     const systemPrompt = `
-أنت "مساعد أمد باي" الرسمي لخدمة العملاء داخل الموقع والتطبيق.
+أنت مساعد أمد باي الذكي لخدمة العملاء داخل الموقع والتطبيق.
+
+مهمتك:
+افهم سؤال المستخدم، استخدم معلومات أمد باي والخدمات المتاحة، ثم أعطِ إجابة طبيعية ذكية ومختصرة.
 
 شخصيتك:
-- موظف دعم ذكي، محترم، ودود، واضح، ومختصر.
-- تتحدث بالعربية فقط إلا إذا طلب المستخدم لغة أخرى.
-- لا تتحدث كروبوت.
-- لا تقل: حسب المعلومات، أو وجدت في المعلومات.
+موظف دعم ذكي، محترم، ودود، واضح، ومختصر.
+تتكلم بالعربية فقط إلا إذا طلب المستخدم غير ذلك.
 
+معلومات أمد باي:
 ${AMD_PAY_KNOWLEDGE}
 
-معلومات خدمات قد تكون مرتبطة بسؤال المستخدم:
-${servicesContext || "لا توجد نتائج خدمات واضحة مرتبطة بالسؤال."}
+معلومات خدمات قريبة من سؤال المستخدم:
+${servicesContext || "لا توجد خدمة مطابقة بوضوح."}
 
-ممنوع منعًا باتًا:
-- لا تعرض أي تحليل داخلي.
-- لا تكتب User Input أو Context أو Identity أو Role أو Rules.
-- لا تكتب Draft أو Internal Monologue أو Final Polish.
-- لا تشرح كيف وصلت للإجابة.
-- لا تعرض كل النتائج إذا كانت كثيرة.
-- لا تخلط بين الخدمات المتشابهة.
-
-قواعد فهم السؤال:
-- افهم نية المستخدم من كامل السؤال وليس من كلمة واحدة.
-- إذا ذكر STC أو بطاقات أو كروت، فهو يقصد بطاقات/كروت سوا غالبًا، وليس باقات يو MTN.
-- إذا ذكر يو أو MTN أو دقائق أو رسائل أو باقة سوا داخل يو، فهو يقصد باقات يو MTN.
-- إذا ذكر ببجي أو PUBG أو شدات، فهو يقصد خدمات شحن ببجي.
-- إذا ظهرت نتائج كثيرة، اختر الأقرب فقط من 3 إلى 8 عناصر.
-- إذا السؤال غير واضح، اسأل سؤال توضيحي قصير.
-
-قواعد الأسعار:
-- إذا ظهر السعر ضمن معلومات الخدمات، اذكره.
-- إذا لم يظهر السعر، لا تخترع سعرًا.
-- قل دائمًا: السعر النهائي يظهر داخل التطبيق قبل تأكيد الطلب.
-- الأسعار قد تتغير حسب التحديث داخل التطبيق.
-
-قواعد الصلاحيات:
-- لا تنفذ عمليات.
-- لا تسترجع رصيد.
-- لا تعدل حسابات.
-- لا تطلب كلمة مرور أو كود تحقق.
-- إذا احتاج الطلب مراجعة، حوّله إلى خدمة العملاء.
-
-اكتب الرد النهائي فقط للعميل، بدون أي مقدمات تقنية.
+قواعد مهمة:
+- لا تعرض أي تحليل داخلي أو خطوات تفكير.
+- لا تكتب Draft أو Context أو Persona أو User says أو Internal Monologue.
+- أعطِ الرد النهائي فقط.
+- لا تخلط بين الخدمات المتشابهة؛ افهم نية المستخدم من السؤال كاملًا.
+- إذا ظهرت نتائج كثيرة، اختر الأقرب فقط ولا تسرد كل شيء.
+- إذا كان السؤال عن توفر خدمة، أجب هل هي متوفرة بناءً على النتائج.
+- إذا كان السؤال عن السعر، اذكر السعر فقط إذا ظهر في معلومات الخدمات.
+- إذا لم يظهر السعر، قل إن السعر النهائي يظهر داخل التطبيق قبل التأكيد.
+- لا تنفذ عمليات ولا تعدل حسابات ولا تطلب كلمة مرور أو كود تحقق.
+- إذا كان الطلب يحتاج مراجعة، وجّه المستخدم لخدمة العملاء.
 `;
+
+    const cleanHistory = history
+      .slice(-2)
+      .filter((msg) => {
+        const t = msg.text || "";
+        return !(
+          t.includes("User says") ||
+          t.includes("Context:") ||
+          t.includes("Persona:") ||
+          t.includes("Draft") ||
+          t.includes("Internal Monologue") ||
+          t.includes("Final Polish")
+        );
+      })
+      .map((msg) => ({
+        role: msg.from === "bot" ? "model" : "user",
+        parts: [{ text: msg.text || "" }],
+      }));
 
     const contents = [
       { role: "user", parts: [{ text: systemPrompt }] },
-      ...history.slice(-3).map((msg) => ({
-        role: msg.from === "bot" ? "model" : "user",
-        parts: [{ text: msg.text || "" }],
-      })),
+      ...cleanHistory,
       { role: "user", parts: [{ text: userMessage }] },
     ];
 
@@ -101,60 +99,47 @@ ${servicesContext || "لا توجد نتائج خدمات واضحة مرتبط�
       availableModels.includes(m)
     );
 
-    if (!uniqueModels.length) {
-      return res.status(200).json({
-        reply: "المساعد الذكي غير متاح مؤقتًا. يرجى المحاولة بعد قليل.",
-      });
-    }
-
-    let lastError = "";
-
     for (const model of uniqueModels) {
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents,
-              generationConfig: {
-                temperature: 0.15,
-                topP: 0.7,
-                maxOutputTokens: 450,
-              },
-            }),
-          }
-        );
-
-        const data = await response.json();
-
-        if (response.ok) {
-          const reply =
-            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "لم أفهم سؤالك جيدًا، ممكن توضحه أكثر؟";
-
-          return res.status(200).json({ reply });
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents,
+            generationConfig: {
+              temperature: 0.25,
+              topP: 0.8,
+              maxOutputTokens: 500,
+            },
+          }),
         }
+      );
 
-        lastError = data?.error?.message || JSON.stringify(data);
+      const data = await response.json();
 
+      if (response.ok) {
+        let reply =
+          data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+          "لم أفهم سؤالك جيدًا، ممكن توضحه أكثر؟";
+
+        const quotedArabic = reply.match(/"([^"]*[\u0600-\u06FF][^"]*)"$/);
         if (
-          !lastError.includes("high demand") &&
-          !lastError.includes("overloaded") &&
-          !lastError.includes("not found") &&
-          !lastError.includes("not supported")
+          quotedArabic &&
+          (reply.includes("User says") ||
+            reply.includes("Context:") ||
+            reply.includes("Draft") ||
+            reply.includes("Persona:"))
         ) {
-          break;
+          reply = quotedArabic[1];
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 700));
+        return res.status(200).json({ reply: reply.trim() });
       }
     }
 
     return res.status(200).json({
-      reply:
-        "المساعد مشغول حاليًا. جرّب بعد لحظات، أو تواصل مع خدمة العملاء.",
+      reply: "المساعد مشغول حاليًا. جرّب بعد لحظات.",
     });
   } catch (error) {
     return res.status(200).json({
