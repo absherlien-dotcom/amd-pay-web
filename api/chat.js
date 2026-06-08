@@ -1,21 +1,6 @@
 import { AMD_PAY_KNOWLEDGE } from "./amdPayKnowledge.js";
 import { getRelevantServices } from "./services.js";
 
-function isServiceQuestion(text) {
-  return /(سعر|اسعار|أسعار|فئات|فئه|فئة|متوفر|موجود|ببجي|pubg|سوا|stc|بطاقات|شدات|باقة|باقات|يمن موبايل|سبافون|واي|mtn|يو|فورجي|عدن نت|يمن نت)/i.test(text);
-}
-
-function cleanServiceReply(servicesContext) {
-  if (!servicesContext || !servicesContext.trim()) return "";
-  const lines = servicesContext
-    .split("\n")
-    .map((x) => x.trim())
-    .filter(Boolean)
-    .slice(0, 25);
-
-  return `نعم، هذه المعلومات المتوفرة داخل أمد باي:\n\n${lines.join("\n")}\n\nملاحظة: السعر النهائي يظهر داخل التطبيق قبل تأكيد الطلب.`;
-}
-
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
@@ -29,35 +14,59 @@ export default async function handler(req, res) {
       return res.status(200).json({ reply: "اكتب سؤالك وسأساعدك." });
     }
 
-    const userMessage = String(message).trim();
-    const servicesContext = getRelevantServices(userMessage);
-
-    if (isServiceQuestion(userMessage) && servicesContext && servicesContext.trim()) {
-      return res.status(200).json({
-        reply: cleanServiceReply(servicesContext),
-      });
-    }
-
     if (!apiKey) {
       return res.status(200).json({
         reply: "المساعد غير مفعّل حالياً. يرجى التواصل مع خدمة العملاء.",
       });
     }
 
+    const userMessage = String(message).trim();
+    const servicesContext = getRelevantServices(userMessage);
+
     const systemPrompt = `
-أنت مساعد أمد باي لخدمة العملاء.
-اكتب الرد النهائي فقط، بدون تحليل داخلي، بدون Draft، بدون Context، بدون شرح القواعد.
-تحدث بالعربية فقط وبأسلوب مختصر وواضح.
+أنت "مساعد أمد باي" الرسمي لخدمة العملاء داخل الموقع والتطبيق.
+
+شخصيتك:
+- موظف دعم ذكي، محترم، ودود، واضح، ومختصر.
+- تتحدث بالعربية فقط إلا إذا طلب المستخدم لغة أخرى.
+- لا تتحدث كروبوت.
+- لا تقل: حسب المعلومات، أو وجدت في المعلومات.
 
 ${AMD_PAY_KNOWLEDGE}
 
-${servicesContext}
+معلومات خدمات قد تكون مرتبطة بسؤال المستخدم:
+${servicesContext || "لا توجد نتائج خدمات واضحة مرتبطة بالسؤال."}
 
-قواعد:
-- لا تخترع أسعار.
-- إذا السعر موجود في معلومات الخدمات اذكره.
-- إذا غير موجود قل إن السعر النهائي يظهر داخل التطبيق قبل تأكيد الطلب.
-- لا تنفذ عمليات ولا تعدل حسابات ولا تطلب كلمات مرور أو أكواد.
+ممنوع منعًا باتًا:
+- لا تعرض أي تحليل داخلي.
+- لا تكتب User Input أو Context أو Identity أو Role أو Rules.
+- لا تكتب Draft أو Internal Monologue أو Final Polish.
+- لا تشرح كيف وصلت للإجابة.
+- لا تعرض كل النتائج إذا كانت كثيرة.
+- لا تخلط بين الخدمات المتشابهة.
+
+قواعد فهم السؤال:
+- افهم نية المستخدم من كامل السؤال وليس من كلمة واحدة.
+- إذا ذكر STC أو بطاقات أو كروت، فهو يقصد بطاقات/كروت سوا غالبًا، وليس باقات يو MTN.
+- إذا ذكر يو أو MTN أو دقائق أو رسائل أو باقة سوا داخل يو، فهو يقصد باقات يو MTN.
+- إذا ذكر ببجي أو PUBG أو شدات، فهو يقصد خدمات شحن ببجي.
+- إذا ظهرت نتائج كثيرة، اختر الأقرب فقط من 3 إلى 8 عناصر.
+- إذا السؤال غير واضح، اسأل سؤال توضيحي قصير.
+
+قواعد الأسعار:
+- إذا ظهر السعر ضمن معلومات الخدمات، اذكره.
+- إذا لم يظهر السعر، لا تخترع سعرًا.
+- قل دائمًا: السعر النهائي يظهر داخل التطبيق قبل تأكيد الطلب.
+- الأسعار قد تتغير حسب التحديث داخل التطبيق.
+
+قواعد الصلاحيات:
+- لا تنفذ عمليات.
+- لا تسترجع رصيد.
+- لا تعدل حسابات.
+- لا تطلب كلمة مرور أو كود تحقق.
+- إذا احتاج الطلب مراجعة، حوّله إلى خدمة العملاء.
+
+اكتب الرد النهائي فقط للعميل، بدون أي مقدمات تقنية.
 `;
 
     const contents = [
@@ -84,9 +93,9 @@ ${servicesContext}
           body: JSON.stringify({
             contents,
             generationConfig: {
-              temperature: 0.1,
-              topP: 0.6,
-              maxOutputTokens: 350,
+              temperature: 0.15,
+              topP: 0.7,
+              maxOutputTokens: 450,
             },
           }),
         }
@@ -104,7 +113,8 @@ ${servicesContext}
     }
 
     return res.status(200).json({
-      reply: "المساعد مشغول حاليًا. جرّب بعد لحظات أو تواصل مع خدمة العملاء.",
+      reply:
+        "المساعد مشغول حاليًا. جرّب بعد لحظات، أو تواصل مع خدمة العملاء.",
     });
   } catch (error) {
     return res.status(200).json({
