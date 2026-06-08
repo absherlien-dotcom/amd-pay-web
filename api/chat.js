@@ -1,5 +1,5 @@
 import { AMD_PAY_KNOWLEDGE } from "./amdPayKnowledge.js";
-import { searchService } from "./servicesData.js";
+import { getRelevantServices } from "./services.js";
 
 export default async function handler(req, res) {
   try {
@@ -21,17 +21,7 @@ export default async function handler(req, res) {
     }
 
     const userMessage = String(message).trim();
-    const matchedServices = searchService(userMessage);
-
-    const servicesContext = matchedServices.length
-      ? `
-الخدمات المطابقة لسؤال المستخدم:
-${matchedServices.map((service) => `- ${service}`).join("\n")}
-`
-      : `
-لم يتم العثور على خدمة مطابقة مباشرة في قائمة الخدمات المختصرة.
-إذا كان السؤال عن خدمة غير واضحة، اطلب من المستخدم كتابة اسم الخدمة بشكل أوضح.
-`;
+    const servicesContext = getRelevantServices(userMessage);
 
     const systemPrompt = `
 أنت "مساعد أمد باي" لخدمة العملاء داخل الموقع والتطبيق.
@@ -43,11 +33,12 @@ ${AMD_PAY_KNOWLEDGE}
 ${servicesContext}
 
 قواعد الرد النهائية:
-- أجب على رسالة المستخدم بناءً على معلومات أمد باي فقط.
+- أجب على رسالة المستخدم بناءً على معلومات أمد باي والخدمات المطابقة فقط.
 - إذا كانت الرسالة تحية، رد بتحية لطيفة واسأل كيف يمكنك مساعدته.
 - إذا كان السؤال غير واضح، اطلب توضيحًا بسيطًا.
-- إذا سأل عن توفر خدمة وظهرت ضمن الخدمات المطابقة، أخبره أنها متوفرة داخل أمد باي.
-- إذا سأل عن سعر خدمة، أخبره أن الأسعار قد تتغير وأن السعر النهائي يظهر داخل التطبيق قبل تأكيد الطلب.
+- إذا سأل عن توفر خدمة وظهرت ضمن معلومات الخدمات، أخبره أنها متوفرة داخل أمد باي.
+- إذا سأل عن سعر خدمة وظهر السعر ضمن معلومات الخدمات، اذكر السعر مع التنبيه أن السعر النهائي داخل التطبيق قبل تأكيد الطلب.
+- إذا لم يظهر السعر ضمن معلومات الخدمات، لا تخترع سعرًا، وقل إن السعر النهائي يظهر داخل التطبيق قبل التأكيد.
 - إذا طلب تنفيذ عملية أو استرجاع أو تعديل حساب، وضّح أن ذلك يحتاج خدمة العملاء.
 - إذا كانت المشكلة تحتاج إدارة، حوّل المستخدم إلى واتساب الدعم.
 - لا تطلب كلمة المرور أو رمز التحقق أو أي بيانات حساسة.
@@ -105,7 +96,7 @@ ${servicesContext}
               generationConfig: {
                 temperature: 0.25,
                 topP: 0.8,
-                maxOutputTokens: 700,
+                maxOutputTokens: 750,
               },
             }),
           }
