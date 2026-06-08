@@ -78,37 +78,77 @@ ${servicesContext || "لا توجد نتائج خدمات واضحة مرتبط�
       { role: "user", parts: [{ text: userMessage }] },
     ];
 
-    const models = [
+    const modelsResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+    );
+
+    const modelsData = await modelsResponse.json();
+
+    const availableModels =
+      modelsData?.models
+        ?.filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+        ?.map((m) => m.name) || [];
+
+    const preferredModels = [
       "models/gemini-1.5-flash",
       "models/gemini-1.5-flash-8b",
       "models/gemini-2.0-flash-lite",
+      "models/gemini-pro",
+      ...availableModels,
     ];
 
-    for (const model of models) {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents,
-            generationConfig: {
-              temperature: 0.15,
-              topP: 0.7,
-              maxOutputTokens: 450,
-            },
-          }),
+    const uniqueModels = [...new Set(preferredModels)].filter((m) =>
+      availableModels.includes(m)
+    );
+
+    if (!uniqueModels.length) {
+      return res.status(200).json({
+        reply: "المساعد الذكي غير متاح مؤقتًا. يرجى المحاولة بعد قليل.",
+      });
+    }
+
+    let lastError = "";
+
+    for (const model of uniqueModels) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents,
+              generationConfig: {
+                temperature: 0.15,
+                topP: 0.7,
+                maxOutputTokens: 450,
+              },
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const reply =
+            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+            "لم أفهم سؤالك جيدًا، ممكن توضحه أكثر؟";
+
+          return res.status(200).json({ reply });
         }
-      );
 
-      const data = await response.json();
+        lastError = data?.error?.message || JSON.stringify(data);
 
-      if (response.ok) {
-        const reply =
-          data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-          "لم أفهم سؤالك جيدًا، ممكن توضحه أكثر؟";
+        if (
+          !lastError.includes("high demand") &&
+          !lastError.includes("overloaded") &&
+          !lastError.includes("not found") &&
+          !lastError.includes("not supported")
+        ) {
+          break;
+        }
 
-        return res.status(200).json({ reply });
+        await new Promise((resolve) => setTimeout(resolve, 700));
       }
     }
 
