@@ -32,6 +32,14 @@ ${AMD_PAY_KNOWLEDGE}
 
 ${servicesContext}
 
+ممنوع منعًا باتًا:
+- لا تعرض للمستخدم أي تحليل داخلي.
+- لا تكتب User Input أو Context أو Identity أو Role أو Rules.
+- لا تكتب Draft أو Internal Monologue أو Final Polish.
+- لا تشرح كيف وصلت للإجابة.
+- لا تكتب باللغة الإنجليزية إلا إذا طلب المستخدم ذلك.
+- اكتب الرد النهائي فقط للعميل.
+
 قواعد الرد النهائية:
 - أجب على رسالة المستخدم بناءً على معلومات أمد باي والخدمات المطابقة فقط.
 - إذا كانت الرسالة تحية، رد بتحية لطيفة واسأل كيف يمكنك مساعدته.
@@ -46,85 +54,44 @@ ${servicesContext}
 
     const contents = [
       { role: "user", parts: [{ text: systemPrompt }] },
-      ...history.slice(-6).map((msg) => ({
+      ...history.slice(-4).map((msg) => ({
         role: msg.from === "bot" ? "model" : "user",
         parts: [{ text: msg.text || "" }],
       })),
       { role: "user", parts: [{ text: userMessage }] },
     ];
 
-    const modelsResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
-    );
+    const model = "models/gemini-2.0-flash-lite";
 
-    const modelsData = await modelsResponse.json();
-
-    const availableModels =
-      modelsData?.models
-        ?.filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
-        ?.map((m) => m.name) || [];
-
-    const preferredModels = [
-      "models/gemini-2.0-flash-lite",
-      "models/gemini-1.5-flash-8b",
-      "models/gemini-1.5-flash",
-      "models/gemini-pro",
-      ...availableModels,
-    ];
-
-    const uniqueModels = [...new Set(preferredModels)].filter((m) =>
-      availableModels.includes(m)
-    );
-
-    if (!uniqueModels.length) {
-      return res.status(200).json({
-        reply: "المساعد الذكي غير متاح مؤقتًا. يرجى المحاولة بعد قليل.",
-      });
-    }
-
-    let lastError = "";
-
-    for (const model of uniqueModels) {
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents,
-              generationConfig: {
-                temperature: 0.25,
-                topP: 0.8,
-                maxOutputTokens: 750,
-              },
-            }),
-          }
-        );
-
-        const data = await response.json();
-
-        if (response.ok) {
-          const reply =
-            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "لم أفهم سؤالك جيدًا، ممكن توضحه أكثر؟";
-
-          return res.status(200).json({ reply });
-        }
-
-        lastError = data?.error?.message || JSON.stringify(data);
-
-        if (!lastError.includes("high demand") && !lastError.includes("overloaded")) {
-          break;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 800));
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents,
+          generationConfig: {
+            temperature: 0.1,
+            topP: 0.6,
+            maxOutputTokens: 380,
+          },
+        }),
       }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      const reply =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "لم أفهم سؤالك جيدًا، ممكن توضحه أكثر؟";
+
+      return res.status(200).json({ reply });
     }
 
     return res.status(200).json({
       reply:
-        "المساعد مشغول حاليًا بسبب ضغط مؤقت. جرّب بعد لحظات، أو اكتب سؤالك مرة أخرى وسأحاول مساعدتك.",
+        "المساعد مشغول حاليًا بسبب ضغط مؤقت. جرّب بعد لحظات، أو تواصل مع خدمة العملاء.",
     });
   } catch (error) {
     return res.status(200).json({
