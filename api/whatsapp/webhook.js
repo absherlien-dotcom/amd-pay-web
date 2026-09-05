@@ -35,7 +35,6 @@ export default async function handler(req, res) {
 
   const incoming = extractIncomingText(req.body);
 
-  // Always acknowledge Meta quickly, even for non-text/status events.
   if (!incoming?.from || !incoming?.text) {
     return res.status(200).send("EVENT_RECEIVED");
   }
@@ -53,11 +52,11 @@ export default async function handler(req, res) {
     const aiData = await aiResponse.json().catch(() => ({}));
     const reply = aiData?.reply || "خدمة أمد باي مشغولة حالياً. حاول مرة أخرى بعد قليل.";
 
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+    const accessToken = process.env.WHATSAPP_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN;
     const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || incoming.phoneNumberId;
 
     if (accessToken && phoneNumberId) {
-      await fetch(`https://graph.facebook.com/v26.0/${phoneNumberId}/messages`, {
+      const sendResponse = await fetch(`https://graph.facebook.com/v26.0/${phoneNumberId}/messages`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -70,6 +69,16 @@ export default async function handler(req, res) {
           type: "text",
           text: { body: String(reply).slice(0, 4096) },
         }),
+      });
+
+      if (!sendResponse.ok) {
+        const errorText = await sendResponse.text();
+        console.error("WhatsApp send failed", sendResponse.status, errorText);
+      }
+    } else {
+      console.error("Missing WhatsApp credentials", {
+        hasToken: Boolean(accessToken),
+        hasPhoneNumberId: Boolean(phoneNumberId),
       });
     }
   } catch (error) {
